@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Unity WebGL Player | Law</title>
+    <link rel="shortcut icon" href="TemplateData/favicon.ico" />
+    <link rel="stylesheet" href="TemplateData/style.css" />
+  </head>
+  <body>
+    <div id="unity-container" class="unity-desktop">
+      <canvas id="unity-canvas" width="960" height="600" tabindex="-1"></canvas>
+      <div id="unity-loading-bar">
+        <div id="unity-logo"></div>
+        <div id="unity-progress-bar-empty">
+          <div id="unity-progress-bar-full"></div>
+        </div>
+      </div>
+      <div id="unity-warning"></div>
+      <div id="unity-footer">
+        <div id="unity-webgl-logo"></div>
+        <div id="unity-fullscreen-button"></div>
+        <div id="unity-build-title">Law</div>
+      </div>
+    </div>
+
+    <!-- 对话框 -->
+    <div
+      id="dialog-container"
+      style="
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 30%;
+        background-color: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 20px;
+        box-sizing: border-box;
+        display: none;
+      "
+    >
+      <div
+        id="dialog-content"
+        style="
+          height: 100%;
+          overflow-y: auto;
+          font-family: Arial, sans-serif;
+          line-height: 1.6;
+        "
+      ></div>
+    </div>
+
+    <script>
+      var container = document.querySelector("#unity-container");
+      var canvas = document.querySelector("#unity-canvas");
+      var loadingBar = document.querySelector("#unity-loading-bar");
+      var progressBarFull = document.querySelector("#unity-progress-bar-full");
+      var fullscreenButton = document.querySelector("#unity-fullscreen-button");
+      var warningBanner = document.querySelector("#unity-warning");
+
+      function unityShowBanner(msg, type) {
+        var div = document.createElement("div");
+        div.innerHTML = msg;
+        warningBanner.appendChild(div);
+        if (type == "error") div.style = "background: red; padding: 10px;";
+        else if (type == "warning") {
+          div.style = "background: yellow; padding: 10px;";
+          setTimeout(function () {
+            warningBanner.removeChild(div);
+            updateBannerVisibility();
+          }, 5000);
+        }
+        updateBannerVisibility();
+      }
+
+      function updateBannerVisibility() {
+        warningBanner.style.display = warningBanner.children.length
+          ? "block"
+          : "none";
+      }
+
+      var buildUrl = "Build";
+      var loaderUrl = buildUrl + "/Law.loader.js";
+      var config = {
+        dataUrl: buildUrl + "/Law.data",
+        frameworkUrl: buildUrl + "/Law.framework.js",
+        codeUrl: buildUrl + "/Law.wasm",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "Huang",
+        productName: "Law",
+        productVersion: "0.1",
+        showBanner: unityShowBanner,
+      };
+
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        container.className = "unity-mobile";
+        config.devicePixelRatio = 1;
+      } else {
+        canvas.style.width = "960px";
+        canvas.style.height = "600px";
+      }
+
+      loadingBar.style.display = "block";
+
+      var script = document.createElement("script");
+      script.src = loaderUrl;
+      script.onload = () => {
+        createUnityInstance(canvas, config, (progress) => {
+          progressBarFull.style.width = 100 * progress + "%";
+        })
+          .then((unityInstance) => {
+            loadingBar.style.display = "none";
+            fullscreenButton.onclick = () => {
+              unityInstance.SetFullscreen(1);
+            };
+            window.unityInstance = unityInstance;
+          })
+          .catch((message) => {
+            alert(message);
+          });
+      };
+      document.body.appendChild(script);
+
+      // 监听来自 Vue 的消息
+      window.addEventListener("message", function (event) {
+        let data = {};
+        try {
+          data = JSON.parse(event.data);
+        } catch (e) {
+          console.error("消息格式错误：", e);
+          return;
+        }
+
+        if (data.type === "allMessages") {
+          const dialogContainer = document.getElementById("dialog-container");
+          const dialogContent = document.getElementById("dialog-content");
+          // 追加对话内容
+          const p = document.createElement("p");
+          p.innerHTML = data.message.replace(/\n/g, "<br>");
+          dialogContent.appendChild(p);
+          dialogContainer.style.display = "block";
+          dialogContent.scrollTop = dialogContent.scrollHeight;
+        } else if (data.type === "switchCamera") {
+          if (window.unityInstance) {
+            let cameraIndex = 0;
+            if (data.isSystem) {
+              // 系统提示摄像头映射
+              if (data.role === "法官") {
+                cameraIndex = 0;
+              } else if (data.role === "原告律师") {
+                cameraIndex = 2;
+              } else if (data.role === "被告律师") {
+                cameraIndex = 4;
+              }
+            } else {
+              // 实际发言摄像头映射
+              if (data.role === "法官") {
+                cameraIndex = 1;
+              } else if (data.role === "原告律师") {
+                cameraIndex = 3;
+              } else if (data.role === "被告律师") {
+                cameraIndex = 5;
+              }
+            }
+            window.unityInstance.SendMessage(
+              "CameraManager",
+              "SwitchCamera",
+              cameraIndex.toString()
+            );
+          }
+        } else if (data.type === "startCourt") {
+          if (window.unityInstance) {
+            window.unityInstance.SendMessage("StartCourtButton", "Click");
+            // 使用传入的 cameraIndex，如果不存在则默认使用 "0"
+            let camIndex = "0";
+            if (data.cameraIndex) {
+              camIndex = data.cameraIndex;
+            }
+            window.unityInstance.SendMessage(
+              "CameraManager",
+              "SwitchCamera",
+              camIndex
+            );
+          }
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -9,7 +9,9 @@
           <router-link to="/chat" class="menu-link">开始对话</router-link>
         </li>
         <li><a href="#" class="menu-link">历史对话</a></li>
-        <li><a href="#" class="menu-link">关于我们</a></li>
+        <li>
+          <router-link to="/AboutUs" class="menu-link">关于我们</router-link>
+        </li>
       </ul>
     </aside>
 

@@ -1,6 +1,6 @@
 <template>
   <div class="chat-page">
-    <h1 class="page-title">模拟法庭对话</h1>
+    <h1 class="page-title">3D 模拟法庭对话</h1>
 
     <!-- 初始阶段：提示先查看流程 -->
     <div v-if="!showProcess && !showConversation" class="intro-section">
@@ -60,17 +60,14 @@
         </div>
       </div>
 
-      <!-- 对话内容显示 -->
-      <div class="conversation" ref="conversationContainer">
-        <div
-          v-for="(msg, index) in conversationHistory"
-          :key="index"
-          :class="['message', msg.type]"
-        >
-          <strong>{{ msg.role }}：</strong>
-          <span v-html="msg.content"></span>
-          <span v-if="msg.streaming" class="streaming-cursor"></span>
-        </div>
+      <!-- Unity WebGL 容器 -->
+      <div id="unity-container" class="unity-container">
+        <iframe
+          id="unity-iframe"
+          src="index.html"
+          frameborder="0"
+          allowfullscreen
+        ></iframe>
       </div>
 
       <!-- 用户输入框（仅在轮到用户时显示） -->
@@ -137,25 +134,63 @@ export default {
       this.currentMessage = 0;
       this.conversationHistory = [];
 
-      this.addSystemMessage(`
+      this.addSystemMessage(
+        `
         <strong>法庭流程开始：</strong><br>
         主题：${this.theme}<br>
         计划回合数：${this.rounds}<br>
         （以下开始模拟法庭多方对话，请注意区分角色。）<br>
-      `);
+      `,
+        true
+      );
+
+      // 自动点击开庭（等待 Unity 加载完毕后发送消息）
+      this.openCourt();
+
       this.nextTurn();
     },
 
+    // 自动点击开庭，等待 Unity 实例加载后发送消息
+    openCourt() {
+      const iframe = document.getElementById("unity-iframe");
+      const sendStart = () => {
+        // 发送开庭消息，并传入摄像头索引 "0"（系统提示：下面由法官说话）
+        iframe.contentWindow.postMessage(
+          JSON.stringify({
+            type: "startCourt",
+            cameraIndex: "0",
+          }),
+          "*"
+        );
+      };
+
+      const checkUnityReady = () => {
+        // 检查 iframe 内是否已经加载了 unityInstance
+        try {
+          if (
+            iframe.contentWindow &&
+            iframe.contentWindow.unityInstance &&
+            typeof iframe.contentWindow.unityInstance.SendMessage === "function"
+          ) {
+            sendStart();
+          } else {
+            setTimeout(checkUnityReady, 500);
+          }
+        } catch (err) {
+          setTimeout(checkUnityReady, 500);
+        }
+      };
+      checkUnityReady();
+    },
+
     // 生成自定义的角色顺序
-    // 前 (rounds - 1) 轮：法官、原告律师、被告律师依次发言
-    // 最后一轮：只有法官
     generateRoleSequence() {
       this.roleSequence = [];
       const validRounds = Math.max(1, this.rounds);
 
-      // 前 (validRounds - 1) 轮
+      // 前 (validRounds - 1) 轮，每轮包含：法官、原告律师、被告律师
       for (let i = 0; i < validRounds - 1; i++) {
-        this.roleSequence.push(...this.roles); // 法官、原告律师、被告律师
+        this.roleSequence.push(...this.roles);
       }
       // 最后一轮：只有法官
       this.roleSequence.push("法官");
@@ -165,30 +200,37 @@ export default {
 
     // 进入下一次发言
     nextTurn() {
-      // 如果对话已经停止
       if (!this.conversationRunning) {
         this.addSystemMessage("<strong>对话已停止</strong>");
         return;
       }
-      // 如果已经发完所有消息
       if (this.currentMessage >= this.totalMessages) {
         this.addSystemMessage("<strong>法庭审理结束</strong>");
         return;
       }
-
-      // 如果当前是最后一条消息（this.currentMessage === this.totalMessages - 1）
-      // 则先提示“这是最后一轮...”
       if (this.currentMessage === this.totalMessages - 1) {
         this.addSystemMessage(
-          "<strong>这是最后一轮对话，下面请法官进行最后总结</strong>"
+          "<strong>这是最后一轮对话，下面请法官进行最后总结</strong>",
+          true
         );
       }
 
-      // 取当前角色
       const currentRole = this.roleSequence[this.currentMessage];
-      this.addSystemMessage(`<em>当前发言角色：${currentRole}</em>`);
+      // 系统提示当前发言角色（使用系统摄像头）
+      this.addSystemMessage(`<em>当前发言角色：${currentRole}</em>`, true);
 
-      // 若是用户回合，就等待输入，否则AI自动发言
+      // 切换到实际发言摄像头
+      const iframe = document.getElementById("unity-iframe");
+      iframe.contentWindow.postMessage(
+        JSON.stringify({
+          type: "switchCamera",
+          role: currentRole,
+          isSystem: false,
+        }),
+        "*"
+      );
+
+      // 若为用户回合，则等待输入，否则 AI 自动发言
       if (currentRole === this.userRole) {
         return;
       } else {
@@ -202,7 +244,7 @@ export default {
       this.addSystemMessage("<strong>对话已强制停止</strong>");
     },
 
-    // 提交用户发言
+    // 用户提交发言
     submitUserMessage() {
       const message = this.userMessage.trim();
       if (!message) return;
@@ -214,12 +256,30 @@ export default {
       });
       this.userMessage = "";
 
-      // 本轮结束，进入下一发言
+      const iframe = document.getElementById("unity-iframe");
+      // 发送用户发言
+      iframe.contentWindow.postMessage(
+        JSON.stringify({
+          type: "allMessages",
+          message: `${this.userRole}：${message}`,
+        }),
+        "*"
+      );
+      // 切换到用户实际发言摄像头
+      iframe.contentWindow.postMessage(
+        JSON.stringify({
+          type: "switchCamera",
+          role: this.userRole,
+          isSystem: false,
+        }),
+        "*"
+      );
+
       this.currentMessage++;
       this.nextTurn();
     },
 
-    // AI流式响应
+    // AI 流式响应
     async streamAIResponse(role) {
       const streamingMessage = {
         role: role,
@@ -269,39 +329,90 @@ export default {
         this.stopConversation();
       }
 
-      // AI 发言结束
+      const iframe = document.getElementById("unity-iframe");
+      // 发送 AI 完成发言内容
+      iframe.contentWindow.postMessage(
+        JSON.stringify({
+          type: "allMessages",
+          message: `${streamingMessage.role}：${streamingMessage.content}`,
+        }),
+        "*"
+      );
+      // 切换到 AI 实际发言摄像头
+      iframe.contentWindow.postMessage(
+        JSON.stringify({
+          type: "switchCamera",
+          role: streamingMessage.role,
+          isSystem: false,
+        }),
+        "*"
+      );
+
       this.currentMessage++;
       this.nextTurn();
     },
 
     // 添加系统消息
-    addSystemMessage(content) {
+    addSystemMessage(content, isSystem = false) {
       this.conversationHistory.push({
         role: "系统",
         content,
         type: "system",
       });
       this.scrollToBottom();
+
+      const iframe = document.getElementById("unity-iframe");
+      // 发送系统消息到 Unity
+      iframe.contentWindow.postMessage(
+        JSON.stringify({
+          type: "allMessages",
+          message: `系统：${content}`,
+        }),
+        "*"
+      );
+      // 如果为系统提示且内容包含角色关键字，则发送摄像头切换消息
+      if (isSystem) {
+        let role = "";
+        if (content.indexOf("法官") !== -1) {
+          role = "法官";
+        } else if (content.indexOf("原告") !== -1) {
+          role = "原告律师";
+        } else if (content.indexOf("被告") !== -1) {
+          role = "被告律师";
+        }
+        if (role) {
+          iframe.contentWindow.postMessage(
+            JSON.stringify({
+              type: "switchCamera",
+              role,
+              isSystem: true,
+            }),
+            "*"
+          );
+        }
+      }
     },
 
     // 滚动到对话底部
     scrollToBottom() {
       this.$nextTick(() => {
-        if (this.$refs.conversationContainer) {
-          this.$refs.conversationContainer.scrollTop =
-            this.$refs.conversationContainer.scrollHeight;
+        if (this.$refs.dialogueContent) {
+          this.$refs.dialogueContent.scrollTop =
+            this.$refs.dialogueContent.scrollHeight;
         }
       });
     },
 
     // 开始语音输入
     startVoiceInput() {
-      if (!("webkitSpeechRecognition" in window)) {
+      let SpeechRecognition =
+        window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
         alert("抱歉，当前浏览器不支持语音输入功能。");
         return;
       }
 
-      this.recognition = new webkitSpeechRecognition();
+      this.recognition = new SpeechRecognition();
       this.recognition.continuous = false;
       this.recognition.interimResults = false;
       this.recognition.lang = "zh-CN";
@@ -316,7 +427,24 @@ export default {
       };
 
       this.recognition.onerror = (event) => {
-        console.error("语音识别错误:", event.error);
+        console.error("语音识别错误:", event.error, event.message);
+        switch (event.error) {
+          case "no-speech":
+            alert("没有检测到语音输入，请再试一次。");
+            break;
+          case "not-allowed":
+          case "service-not-allowed":
+            alert("语音识别服务被禁止或未启用。");
+            break;
+          case "bad-grammar":
+            alert("语法错误。");
+            break;
+          case "audio-capture":
+            alert("音频设备无法访问。");
+            break;
+          default:
+            alert("语音识别时发生错误，请稍后再试。");
+        }
         this.recognition = null;
       };
 
@@ -334,6 +462,22 @@ export default {
   text-align: center;
   font-size: 26px;
   margin-bottom: 20px;
+}
+
+/* Unity WebGL 容器 */
+.unity-container {
+  width: 100%;
+  height: 60vh;
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+/* iframe 样式 */
+#unity-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
 }
 
 /* 初始流程介绍 */
@@ -372,61 +516,12 @@ export default {
   border-radius: 6px;
 }
 
-/* 对话框 */
-.conversation {
-  background: #fff;
-  padding: 20px;
-  border-radius: 10px;
-  min-height: 300px;
-  max-height: 450px;
-  overflow-y: auto;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  margin-bottom: 15px;
-}
-.message {
-  margin-bottom: 10px;
-  padding: 8px;
-  border-radius: 6px;
-}
-.message.user {
-  background-color: #d1e7dd;
-  border-left: 4px solid #0d6efd;
-}
-.message.system {
-  background-color: #e2e3e5;
-  border-left: 4px solid #6c757d;
-}
-.message.streaming {
-  background-color: #fff3cd;
-  border-left: 4px solid #ffc107;
-}
-
-/* 动态光标 */
-.streaming-cursor {
-  display: inline-block;
-  width: 8px;
-  height: 16px;
-  background-color: #000;
-  animation: blink 1s infinite;
-  margin-left: 4px;
-}
-@keyframes blink {
-  0% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
 /* 用户输入 */
 .user-input {
   display: flex;
   justify-content: center;
   gap: 10px;
+  margin-top: 20px;
 }
 .user-input input {
   flex: 1;
@@ -442,7 +537,7 @@ export default {
   color: #666;
 }
 
-/* 按钮示例 */
+/* 按钮样式 */
 .btn {
   padding: 8px 16px;
   border-radius: 6px;
