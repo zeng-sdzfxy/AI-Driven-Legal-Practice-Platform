@@ -12,6 +12,21 @@ dist
 dist-ssr
 *.local
 
+# Environment variables
+.env
+
+# Unity WebGL large build artifacts
+public/Build/*.data
+public/Build/*.wasm
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environment (废弃，统一使用根级 .venv)
+myenv/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -1,0 +1,51 @@
+/* theme.css — Lawting 红色法律主题 */
+
+:root {
+  /* ===== 主色系 ===== */
+  --color-primary: #8B1A1A;           /* 深红：品牌主色、标题、主按钮 */
+  --color-primary-light: #C41E3A;      /* 亮红：hover 状态、次要强调 */
+  --color-accent: #D7000F;             /* 强调红：图标、高亮元素 */
+  --color-primary-dark: #6B0000;       /* 暗红：按钮深色 hover、表头 */
+
+  /* ===== 点缀色 ===== */
+  --color-gold: #C9A96E;               /* 法槌金：尊贵点缀、法官标签 */
+  --color-gold-light: #D4AF37;         /* 亮金：更亮的金色变体 */
+
+  /* ===== 背景色 ===== */
+  --color-bg-warm: #F5F0EB;            /* 暖白：页面主背景 */
+  --color-bg-white: #FFFFFF;           /* 纯白：卡片背景 */
+  --color-bg-dark: #2C0E0E;            /* 深红棕：深色区域 */
+  --color-bg-red-light: #FDF5F5;       /* 浅红：hover 背景、红色区域底色 */
+
+  /* ===== 文字色 ===== */
+  --color-text-primary: #2B2B2B;       /* 深灰：正文 */
+  --color-text-secondary: #5A5A5A;     /* 中灰：辅助文字 */
+  --color-text-on-primary: #FFFFFF;     /* 白：用于主色背景上的文字 */
+  --color-text-on-dark: #F0E6D3;       /* 暖浅色：用于深色背景上的文字 */
+
+  /* ===== 边框与分割 ===== */
+  --color-border: #E8E0D8;             /* 暖灰：主边框 */
+  --color-border-light: #F0EBE5;       /* 浅暖灰：轻边框 */
+
+  /* ===== 渐变 ===== */
+  --gradient-hero: linear-gradient(135deg, #1A0A0A 0%, #3D0000 40%, #5C1010 70%, #8B1A1A 100%);
+  --gradient-primary: linear-gradient(135deg, #8B1A1A, #C41E3A);
+  --gradient-primary-hover: linear-gradient(135deg, #6B0000, #8B1A1A);
+  --gradient-gold: linear-gradient(135deg, #C9A96E, #D4AF37);
+  --gradient-hero-light: linear-gradient(160deg, #3D1A1A 0%, #5C2E2E 45%, #7A3D3D 100%);
+
+  /* ===== 阴影 ===== */
+  --shadow-sm: 0 2px 8px rgba(139, 26, 26, 0.06);
+  --shadow-md: 0 4px 16px rgba(139, 26, 26, 0.10);
+  --shadow-lg: 0 8px 32px rgba(139, 26, 26, 0.14);
+  --shadow-gold: 0 4px 16px rgba(201, 169, 110, 0.20);
+
+  /* ===== 圆角 ===== */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+
+  /* ===== 过渡 ===== */
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+}

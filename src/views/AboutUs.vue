@@ -34,11 +34,10 @@
         <h2><i class="fas fa-envelope"></i> 联系我们</h2>
         <p>如果您有任何问题或建议，欢迎通过以下方式联系我们：</p>
         <ul>
-          <li><i class="fas fa-at"></i> Email: contact@example.com</li>
-          <li><i class="fas fa-phone-alt"></i> Phone: +123 456 7890</li>
+          <li><i class="fas fa-at"></i> Email:</li>
+          <li><i class="fas fa-phone-alt"></i> Phone: </li>
           <li>
-            <i class="fas fa-map-marker-alt"></i> Address: 123 法律大道, 科技城,
-            高新区
+            <i class="fas fa-map-marker-alt"></i> Address: 济南历下区
           </li>
         </ul>
       </div>
@@ -65,81 +64,58 @@ export default {
 </script>
 
 <style scoped>
-/* 整个页面使用和首页一致的背景渐变或图片 */
+/* 整个页面使用和首页一致的背景和字体 */
 .home-page {
-  min-height: 100vh;
-  background: linear-gradient(to bottom right, #f0f8ff, #b0e0e6);
+  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-bg-warm);
+  color: var(--color-text-primary);
   padding: 20px;
-  font-family: "Arial", sans-serif;
-  color: #333;
 }
 
 /* 顶部Hero区 */
 .hero-section {
   text-align: center;
-  padding: 60px 40px;
-  background: rgba(255, 255, 255, 0.8);
-  margin-bottom: 40px;
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  margin: 40px 0;
 }
 .hero-section h1 {
-  font-size: 48px;
-  margin-bottom: 20px;
-}
-.hero-section h1 i {
-  margin-right: 10px;
+  font-size: 36px;
 }
 .hero-section p {
-  font-size: 20px;
-  color: #666;
+  font-size: 24px;
+  margin-bottom: 20px;
 }
 
 /* 中间内容区 */
 .content-section {
+  text-align: center;
+  margin: 40px 0;
   display: flex;
-  flex-wrap: wrap;
-  gap: 40px;
   justify-content: center;
-  margin-bottom: 60px;
+  gap: 20px;
+  flex-wrap: wrap;
 }
 .card {
-  flex: 1 1 400px;
-  max-width: 600px;
-  background: #fff;
-  border-radius: 12px;
-  padding: 40px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s;
-}
-.card:hover {
-  transform: scale(1.03);
+  background: var(--color-bg-white);
+  padding: 20px;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  flex: 1 1 200px;
+  max-width: 300px;
+  border-top: 3px solid var(--color-primary);
 }
 .card h2 {
-  margin-bottom: 25px;
-  color: #007bff;
-  display: flex;
-  align-items: center;
+  font-size: 24px;
+  margin-bottom: 10px;
+  color: var(--color-primary);
 }
-.card h2 i {
-  margin-right: 10px;
+.card p {
+  margin-bottom: 10px;
 }
 .card ul {
   list-style: none;
   padding: 0;
 }
 .card ul li {
-  margin-bottom: 20px;
-  display: flex;
-  align-items: center;
-}
-.card ul li i {
-  margin-right: 10px;
-}
-.card p {
-  margin-bottom: 15px;
-}
-.card p strong {
-  color: #007bff;
+  margin-bottom: 5px;
 }
 </style>
