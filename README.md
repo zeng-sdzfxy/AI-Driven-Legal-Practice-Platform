@@ -29,21 +29,17 @@
 
 > 💡 **截图说明**：请在 `screenshots/` 目录下放置您的截图，下方占位符会自动显示。
 
-| 首页 Hero | 核心功能 |
+| 首页 | 2D 庭审对话 |
 |---|---|
-| ![首页](./screenshots/home-hero.png) | ![功能](./screenshots/features.png) |
+| ![首页](./screenshots/首页界面.png) | ![2D](./screenshots/2D对话界面.png) |
 
-| 庭审流程 | 案例库 |
+| 3D 法庭场景 | AI 评估报告 |
 |---|---|
-| ![流程](./screenshots/process.png) | ![案例](./screenshots/cases.png) |
+| ![3D](./screenshots/3D对话界面.png) | ![评估](./screenshots/评价报告.png) |
 
-| 2D 庭审对话 | 3D 法庭场景 |
-|---|---|
-| ![2D](./screenshots/chat-2d.png) | ![3D](./screenshots/chat-3d.png) |
-
-| AI 评估报告 | 登录页面 |
-|---|---|
-| ![评估](./screenshots/evaluation.png) | ![登录](./screenshots/login.png) |
+| 历史记录 |
+|---|
+| ![历史](./screenshots/历史记录.png) |
 
 ---
 
@@ -214,15 +210,7 @@ AI-Driven-Legal-Practice-Platform/
 ├── config.py                     # 共享配置（读取 .env）
 ├── start_services.py             # 一键启动脚本
 │
-├── screenshots/                  # 📸 截图目录（自行放置）
-│   ├── home-hero.png
-│   ├── features.png
-│   ├── process.png
-│   ├── cases.png
-│   ├── chat-2d.png
-│   ├── chat-3d.png
-│   ├── evaluation.png
-│   └── login.png
+├── screenshots/                  # 📸 界面截图
 │
 └── dist/                         # 前端构建输出
 ```
@@ -241,15 +229,3 @@ AI-Driven-Legal-Practice-Platform/
 | `--color-bg-warm` | `#F5F0EB` | 暖白页面背景 |
 | `--gradient-hero-light` | 浅红渐变 | Hero 横幅背景 |
 
----
-
-## 📄 许可证
-
-本项目为山东政法学院网络空间安全学院教学实践项目。
-
----
-
-<p align="center">
-  <b>Made with ❤️ by 山政网安开发团队</b><br/>
-  <sub>© 2025 山政网安开发团队版权所有</sub>
-</p>
